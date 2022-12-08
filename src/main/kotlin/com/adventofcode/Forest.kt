@@ -11,26 +11,21 @@ class Crosswalk(
   private val top: List<Int>,
   private val bottom: List<Int>
 ) {
-  private fun isLeftVisible() = isVisibleOn(left)
-  private fun isRightVisible() = isVisibleOn(right)
 
-  private fun isTopVisible() = isVisibleOn(top)
+  fun scenicScore(): Int {
+    val leftScore = countVisibleTreesOn(left)
+    val rightScore = countVisibleTreesOn(right)
+    val topScore = countVisibleTreesOn(top)
+    val bottomScore = countVisibleTreesOn(bottom)
+    return leftScore * rightScore * topScore * bottomScore
+  }
 
-  private fun isBottomVisible() = isVisibleOn(bottom)
-
-  fun isFullVisible() =
-    isLeftVisible()
-      && isRightVisible()
-      && isTopVisible()
-      && isBottomVisible()
-
-  fun isPartialVisible() =
-    isLeftVisible()
-      || isRightVisible()
-      || isTopVisible()
-      || isBottomVisible()
-
-  fun isVisibleOn(side: List<Int>) = side.all { it < tree }
+  private fun countVisibleTreesOn(side: List<Int>): Int {
+    return when (val visibleTrees = side.takeWhile { it < tree }.size) {
+      side.size -> visibleTrees
+      else -> visibleTrees + 1
+    }
+  }
 }
 
 object Forest {
@@ -56,10 +51,10 @@ object Forest {
   private fun crosswalk(row: Int, column: Int): Crosswalk {
     val me = tree(row, column)
     val leftAndRight = row(row)
-    val left = leftAndRight.slice(0 until column)
+    val left = leftAndRight.slice(0 until column).asReversed()
     val right = leftAndRight.slice(column + 1 until columns)
     val topAndBottom = column(column)
-    val top = topAndBottom.slice(0 until row)
+    val top = topAndBottom.slice(0 until row).asReversed()
     val bottom = topAndBottom.slice(row + 1 until rows)
     return Crosswalk(me, left, right, top, bottom)
   }
@@ -79,7 +74,7 @@ object Forest {
 }
 
 fun solution(): Int {
-  return crosswalks().count(Crosswalk::isPartialVisible)
+  return crosswalks().maxOf(Crosswalk::scenicScore)
 }
 
 fun main() {
